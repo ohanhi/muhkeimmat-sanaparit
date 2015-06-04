@@ -30,9 +30,9 @@ that reached that number.
 -}
 main : Element
 main =
-  let bestWordPairs = bestWordPairs DataSource.alastalo
-      maxMuhkeus = highestMuhkeus bestWordPairs
-      tuples = wordPairsToDedupedTuples bestWordPairs
+  let wordPairs = bestWordPairs (DataSource.alastalo)
+      maxMuhkeus = highestMuhkeus wordPairs
+      tuples = wordPairsToDedupedTuples wordPairs
   in  flow down
         [ show ("muhkeus: " ++ toString maxMuhkeus)
         , show tuples

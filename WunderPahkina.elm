@@ -4,8 +4,12 @@ import Array
 import List
 import Set
 
--- DataSource containts the book "Alastalon Salissa" by Volter Kilpi
+-- `DataSource.alastalo` is the book "Alastalon Salissa" by Volter Kilpi
 import DataSource
+
+-- Configuration for running the solver
+-- how many best single words to use as the base for cross-examination
+initialTake = 20
 
 type alias WordPair =
   { wordA : String, wordB : String, muhkeus : Int }
@@ -18,9 +22,6 @@ validChars =
     , 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't'
     , 'u', 'v', 'w', 'x', 'y', 'z', 'å', 'ä', 'ö'
     ]
-
--- how many best single words to use as the base for cross-examination
-initialTake = 20
 
 main : Element
 main =

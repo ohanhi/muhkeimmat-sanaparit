@@ -12,7 +12,7 @@ import DataSource
 initialTake = 20
 
 type alias WordPair =
-  { wordA : String, wordB : String, muhkeus : Int }
+  { pair : (String, String), muhkeus : Int }
 
 -- Valid characters from the exercise definition
 validChars : Set.Set Char
@@ -39,36 +39,48 @@ In essence we
 -}
 bestWordPairs : String -> List WordPair
 bestWordPairs text =
-  let bestSingleWords =
+  let uniqueWords = -- reduces the amount of calculations considerably
         text
+          |> String.toLower
           |> String.words
+          |> Set.fromList
+          |> Set.toList
+      bestSingleWords =
+        uniqueWords
           |> bestWords initialTake
       bestPairs =
         bestSingleWords
           |> List.map (bestMatches bestSingleWords)
           |> List.concat
-      highestMuhkeus =
-        bestPairs
-          |> List.map (\wp -> wp.muhkeus)
-          |> List.maximum
-          |> Maybe.withDefault 0
+      maxValue  = highestMuhkeus bestPairs
   in  bestPairs
-        |> List.filter (\wp -> wp.muhkeus == highestMuhkeus)
+        |> List.filter (\wp -> wp.muhkeus == maxValue )
 
--- check best matches for `wordA` from `words` list
+-- returns the pairs with the highest muhkeus within the list
+withMaximumMuhkeus : List WordPair -> List WordPair
+withMaximumMuhkeus pairs =
+  let max = highestMuhkeus pairs
+  in  List.filter (\pair -> pair.muhkeus == max) pairs
+
+-- finds the maximum muhkeus in the list
+highestMuhkeus : List WordPair -> Int
+highestMuhkeus pairs =
+  pairs
+    |> List.map (\wp -> wp.muhkeus)
+    |> List.maximum
+    |> Maybe.withDefault 0
+
+-- check best matches for `a` from `words` list
 bestMatches : List String -> String -> List WordPair
-bestMatches words wordA =
-  let wl    = String.length wordA
+bestMatches words a =
+  let wl    = String.length a
       wordPairs =
-        words
-          |> List.map (\w -> { wordA   = wordA
-                             , wordB   = w
-                             , muhkeus = tupleMuhkeus(wordA,w)
-                             })
-          |> List.sortBy .muhkeus
-          |> List.reverse
-          |> List.take 5
-  in  wordPairs
+        List.map
+          (\b ->  { pair = (a, b)
+                  , muhkeus = tupleMuhkeus (a, b)
+                  })
+          words
+  in  withMaximumMuhkeus wordPairs
 
 -- get n words with most "muhkeus" from a list
 bestWords : Int -> List String -> List String

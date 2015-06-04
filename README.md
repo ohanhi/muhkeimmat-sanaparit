@@ -6,7 +6,6 @@ Screenshot of a successful run:
 ![](screenshot.png)
 
 # Potential for future improvements
-- Trim semantic duplicates
 - Instead of fixed initial sample size, use smarter predicate for filtering
 
 # License

@@ -23,11 +23,20 @@ validChars =
     , 'u', 'v', 'w', 'x', 'y', 'z', 'å', 'ä', 'ö'
     ]
 
+{-
+The main runnable function.
+Shows the highest "muhkeus" value, and a list of word pairs
+that reached that number.
+-}
 main : Element
 main =
-  DataSource.alastalo
-    |> bestWordPairs
-    |> show
+  let bestWordPairs = bestWordPairs DataSource.alastalo
+      maxMuhkeus = highestMuhkeus bestWordPairs
+      tuples = wordPairsToDedupedTuples bestWordPairs
+  in  flow down
+        [ show ("muhkeus: " ++ toString maxMuhkeus)
+        , show tuples
+        ]
 
 {-
 Get `WordPair`s with most "muhkeus" in `text`.
@@ -107,3 +116,11 @@ muhkeus string =
     |> Set.toList               -- Set doesn't have a length, but List does
     |> List.length
 
+-- Transform `WordPair`s into tuples and deduplicate
+wordPairsToDedupedTuples : List WordPair -> List (String, String)
+wordPairsToDedupedTuples wordPairs =
+  wordPairs
+    |> List.map (\w -> (w.pair))
+    |> List.map (\(a, b) -> if a < b then (a, b) else (b, a))
+    |> Set.fromList
+    |> Set.toList

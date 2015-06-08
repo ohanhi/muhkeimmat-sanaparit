@@ -32,11 +32,10 @@ main : Element
 main =
   let wordPairs = bestWordPairs (DataSource.alastalo)
       maxMuhkeus = highestMuhkeus wordPairs
-      tuples = wordPairsToDedupedTuples wordPairs
-  in  flow down
-        [ show ("muhkeus: " ++ toString maxMuhkeus)
-        , show tuples
-        ]
+      descriptionEl = show ("muhkeus: " ++ toString maxMuhkeus)
+      tuples = toDedupedTuples wordPairs
+      elements = descriptionEl :: (List.map show tuples)
+  in  flow down elements
 
 {-
 Get `WordPair`s with most "muhkeus" in `text`.
@@ -51,8 +50,8 @@ bestWordPairs text =
   let uniqueWords = -- reduces the amount of calculations considerably
         text
           |> String.toLower
-          |> String.words
-          |> Set.fromList
+          |> String.words -- split to list containing single words
+          |> Set.fromList -- transforming to set deduplicates the list
           |> Set.toList
       bestSingleWords =
         uniqueWords
@@ -61,17 +60,16 @@ bestWordPairs text =
         bestSingleWords
           |> List.map (bestMatches bestSingleWords)
           |> List.concat
-      maxValue  = highestMuhkeus bestPairs
+          |> withMaximumMuhkeus
   in  bestPairs
-        |> List.filter (\wp -> wp.muhkeus == maxValue )
 
--- returns the pairs with the highest muhkeus within the list
+-- Get the pairs with the highest muhkeus within the list
 withMaximumMuhkeus : List WordPair -> List WordPair
 withMaximumMuhkeus pairs =
   let max = highestMuhkeus pairs
   in  List.filter (\pair -> pair.muhkeus == max) pairs
 
--- finds the maximum muhkeus in the list
+-- Finds the maximum muhkeus in the list
 highestMuhkeus : List WordPair -> Int
 highestMuhkeus pairs =
   pairs
@@ -79,19 +77,13 @@ highestMuhkeus pairs =
     |> List.maximum
     |> Maybe.withDefault 0
 
--- check best matches for `a` from `words` list
+-- Check best matches for `a` from `words` list
 bestMatches : List String -> String -> List WordPair
 bestMatches words a =
-  let wl    = String.length a
-      wordPairs =
-        List.map
-          (\b ->  { pair = (a, b)
-                  , muhkeus = tupleMuhkeus (a, b)
-                  })
-          words
+  let wordPairs = List.map (toWordPair a) words
   in  withMaximumMuhkeus wordPairs
 
--- get n words with most "muhkeus" from a list
+-- Get n words with most "muhkeus" from a list
 bestWords : Int -> List String -> List String
 bestWords n words =
   words
@@ -99,13 +91,7 @@ bestWords n words =
     |> List.reverse
     |> List.take n
 
--- "muhkeus" of a word tuple
-tupleMuhkeus : (String, String) -> Int
-tupleMuhkeus (a, b) =
-  String.append a b
-    |> muhkeus
-
--- the "muhkeus" of the string
+-- Get the "muhkeus" of the string
 muhkeus : String -> Int
 muhkeus string =
   string
@@ -116,9 +102,16 @@ muhkeus string =
     |> Set.toList               -- Set doesn't have a length, but List does
     |> List.length
 
+-- Transform two `String`s to a `WordPair` with those words
+toWordPair : String -> String -> WordPair
+toWordPair a b =
+  { pair = (a, b)
+  , muhkeus = muhkeus (String.append a b)
+  }
+
 -- Transform `WordPair`s into tuples and deduplicate
-wordPairsToDedupedTuples : List WordPair -> List (String, String)
-wordPairsToDedupedTuples wordPairs =
+toDedupedTuples : List WordPair -> List (String, String)
+toDedupedTuples wordPairs =
   wordPairs
     |> List.map (\w -> (w.pair))
     |> List.map (\(a, b) -> if a < b then (a, b) else (b, a))
